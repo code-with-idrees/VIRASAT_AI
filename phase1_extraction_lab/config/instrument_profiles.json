@@ -1,0 +1,113 @@
+{
+  "instruments": {
+    "sitar": {
+      "name": "Sitar",
+      "family": "Plucked string",
+      "frequency_ranges": {
+        "fundamental": {"low_hz": 200, "high_hz": 700},
+        "harmonics": {"low_hz": 1000, "high_hz": 4000},
+        "sympathetic_strings": {"low_hz": 8000, "high_hz": 12000}
+      },
+      "bleed_threshold_db": -15,
+      "common_in_eras": ["Era 2: Classical/Ghazal"],
+      "bleed_pattern": "Sustained harmonics that overlap with vocal formants. Sympathetic strings create high-frequency shimmer.",
+      "challenge_level": "HIGH"
+    },
+    "tabla": {
+      "name": "Tabla",
+      "family": "Percussion (paired drums)",
+      "frequency_ranges": {
+        "bayan_bass": {"low_hz": 60, "high_hz": 200},
+        "dayan_treble": {"low_hz": 200, "high_hz": 600},
+        "attack_transients": {"low_hz": 2000, "high_hz": 5000}
+      },
+      "bleed_threshold_db": -12,
+      "common_in_eras": ["Era 1: Film", "Era 2: Classical/Ghazal"],
+      "bleed_pattern": "Sharp attack transients (2-5 kHz) can bleed into vocal onset. Bass resonance (60-200 Hz) can color vocal low-end.",
+      "challenge_level": "MEDIUM"
+    },
+    "harmonium": {
+      "name": "Harmonium",
+      "family": "Free reed aerophone",
+      "frequency_ranges": {
+        "fundamental_reed": {"low_hz": 200, "high_hz": 800},
+        "bellows_noise": {"low_hz": 100, "high_hz": 2000}
+      },
+      "bleed_threshold_db": -15,
+      "common_in_eras": ["Era 2: Classical/Ghazal", "Era 1: Film"],
+      "bleed_pattern": "CRITICAL: Reed frequencies (200-800 Hz) directly overlap with male vocal fundamental range. Hardest instrument to separate from baritone voices like Mehdi Hassan.",
+      "challenge_level": "CRITICAL"
+    },
+    "tanpura": {
+      "name": "Tanpura (Tambura)",
+      "family": "Drone string",
+      "frequency_ranges": {
+        "drone_fundamental": {"low_hz": 60, "high_hz": 250},
+        "harmonics": {"low_hz": 250, "high_hz": 2000},
+        "jivari_buzz": {"low_hz": 3000, "high_hz": 8000}
+      },
+      "bleed_threshold_db": -10,
+      "common_in_eras": ["Era 2: Classical/Ghazal"],
+      "bleed_pattern": "Continuous drone provides sustained harmonic bed. Jivari (buzzing bridge) creates broadband high-frequency content that is spectrally distinct from vocals.",
+      "challenge_level": "LOW"
+    },
+    "dhol": {
+      "name": "Dhol",
+      "family": "Double-headed barrel drum",
+      "frequency_ranges": {
+        "bass_side": {"low_hz": 50, "high_hz": 150},
+        "treble_side_attack": {"low_hz": 2000, "high_hz": 8000}
+      },
+      "bleed_threshold_db": -10,
+      "common_in_eras": ["Era 3: Pop/Bhangra"],
+      "bleed_pattern": "Extremely broadband instrument (50 Hz - 8 kHz). Treble side attacks are spectrally similar to vocal sibilants. Bass side can mask low vocal energy.",
+      "challenge_level": "HIGH"
+    },
+    "sarangi": {
+      "name": "Sarangi",
+      "family": "Bowed string",
+      "frequency_ranges": {
+        "fundamental": {"low_hz": 250, "high_hz": 1200},
+        "harmonics": {"low_hz": 1200, "high_hz": 4000},
+        "sympathetic_strings": {"low_hz": 5000, "high_hz": 10000}
+      },
+      "bleed_threshold_db": -15,
+      "common_in_eras": ["Era 1: Film", "Era 2: Classical/Ghazal"],
+      "bleed_pattern": "CRITICAL: Called 'the instrument closest to the human voice'. Fundamental range almost perfectly overlaps female vocal range. The hardest instrument to separate from female vocals (Noor Jehan).",
+      "challenge_level": "CRITICAL"
+    },
+    "electric_guitar": {
+      "name": "Electric Guitar",
+      "family": "Plucked string (amplified)",
+      "frequency_ranges": {
+        "fundamental": {"low_hz": 80, "high_hz": 1200},
+        "harmonics_distortion": {"low_hz": 1200, "high_hz": 6000},
+        "presence": {"low_hz": 6000, "high_hz": 12000}
+      },
+      "bleed_threshold_db": -15,
+      "common_in_eras": ["Era 3: Pop/Rock", "Era 4: Digital"],
+      "bleed_pattern": "Distorted guitar occupies broad spectrum. Demucs is well-trained on Western rock guitars.",
+      "challenge_level": "LOW"
+    },
+    "synthesizer": {
+      "name": "Synthesizer / Keyboard",
+      "family": "Electronic",
+      "frequency_ranges": {
+        "bass_patches": {"low_hz": 30, "high_hz": 200},
+        "pad_patches": {"low_hz": 200, "high_hz": 4000},
+        "lead_patches": {"low_hz": 500, "high_hz": 8000}
+      },
+      "bleed_threshold_db": -12,
+      "common_in_eras": ["Era 3: Pop/Disco"],
+      "bleed_pattern": "Synth pads can occupy same frequency range as vocals. Common in Nazia Hassan era disco recordings.",
+      "challenge_level": "MEDIUM"
+    }
+  },
+  "vocal_reference_ranges": {
+    "male_baritone": {"low_hz": 80, "high_hz": 350, "note": "Mehdi Hassan, Nusrat Fateh Ali Khan lower register"},
+    "male_tenor": {"low_hz": 130, "high_hz": 500, "note": "Ghulam Ali, most pop singers"},
+    "female_mezzo": {"low_hz": 200, "high_hz": 700, "note": "Noor Jehan, Abida Parveen"},
+    "female_soprano": {"low_hz": 260, "high_hz": 1100, "note": "Nazia Hassan, higher register film singers"},
+    "speech_band": {"low_hz": 300, "high_hz": 3400, "note": "Primary vocal intelligibility band"}
+  }
+}
