@@ -1,0 +1,41 @@
+# ============================================
+# VIRASAT AI — Phase 1 Dependencies
+# ============================================
+
+# Force CPU-only PyTorch to save disk space and avoid NVIDIA/CUDA downloads
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+torchaudio
+
+# --- Core Audio Processing ---
+demucs>=4.0.0               # Hybrid Transformer stem separation
+librosa>=0.10.0              # Audio analysis (STFT, MFCC, spectral features)
+soundfile>=0.12.0            # Audio I/O (WAV read/write)
+numpy>=1.24.0                # Numerical computing
+scipy>=1.10.0                # Signal processing (Wiener filter, spectral operations)
+
+# --- Audio Quality Metrics ---
+mir_eval>=0.7                # SDR/SIR/SAR computation (BSS_eval standard)
+museval>=0.4.0               # MUSDB evaluation toolkit
+
+# --- Song Download ---
+yt-dlp>=2023.0               # YouTube audio downloader
+
+# --- Visualization ---
+matplotlib>=3.7.0            # Spectrogram plots, frequency charts
+seaborn>=0.12.0              # Statistical visualizations
+
+# --- Machine Learning (for Raag detection) ---
+scikit-learn>=1.2.0          # KNN, SVM, cosine similarity
+
+# --- Notebook Support ---
+ipywidgets>=8.0.0            # Interactive Colab widgets
+tqdm>=4.65.0                 # Progress bars
+
+# --- Testing ---
+pytest>=7.3.0                # Test framework
+pytest-cov>=4.1.0            # Coverage reporting
+
+# --- Utilities ---
+pyyaml>=6.0                  # Config file parsing
+rich>=13.0.0                 # Pretty terminal output
