@@ -1,0 +1,93 @@
+{
+  "quality_thresholds": {
+    "sdr": {
+      "name": "Signal-to-Distortion Ratio",
+      "unit": "dB",
+      "formula": "SDR = 10 * log10(||s_target||^2 / ||e_total||^2)",
+      "thresholds": {
+        "excellent": {"min_db": 12, "label": "Studio quality"},
+        "good": {"min_db": 8, "label": "Suitable for remixing"},
+        "acceptable": {"min_db": 5, "label": "Audible artifacts present"},
+        "poor": {"min_db": 0, "label": "Needs improvement"}
+      },
+      "target_days_1_2": 8,
+      "demucs_benchmark": {
+        "htdemucs": 7.5,
+        "htdemucs_ft": 9.2
+      }
+    },
+    "sir": {
+      "name": "Signal-to-Interference Ratio",
+      "unit": "dB",
+      "formula": "SIR = 10 * log10(||s_target||^2 / ||e_interf||^2)",
+      "thresholds": {
+        "excellent": {"min_db": 20, "label": "No audible bleed"},
+        "good": {"min_db": 15, "label": "Minimal bleed (acceptable)"},
+        "acceptable": {"min_db": 10, "label": "Noticeable bleed"},
+        "poor": {"min_db": 0, "label": "Severe bleed (unacceptable)"}
+      },
+      "target_days_1_2": 15
+    },
+    "sar": {
+      "name": "Signal-to-Artifacts Ratio",
+      "unit": "dB",
+      "formula": "SAR = 10 * log10(||s_target + e_interf + e_noise||^2 / ||e_artif||^2)",
+      "thresholds": {
+        "excellent": {"min_db": 15, "label": "Transparent (no audible artifacts)"},
+        "good": {"min_db": 10, "label": "Minor artifacts (acceptable)"},
+        "poor": {"min_db": 0, "label": "Obvious artifacts"}
+      },
+      "target_days_1_2": 10
+    },
+    "virasat_score": {
+      "name": "Virasat Composite Score",
+      "unit": "0-100 scale",
+      "formula": "0.40*norm(SIR) + 0.30*norm(SDR) + 0.20*norm(SAR) + 0.10*norm(SNR)",
+      "weights": {
+        "sir_weight": 0.40,
+        "sdr_weight": 0.30,
+        "sar_weight": 0.20,
+        "snr_weight": 0.10
+      },
+      "normalization": {
+        "method": "min-max",
+        "sir_range": [0, 30],
+        "sdr_range": [0, 20],
+        "sar_range": [0, 25],
+        "snr_range": [0, 60]
+      },
+      "thresholds": {
+        "gold": {"min_score": 90, "label": "Heritage Gold (production ready)"},
+        "silver": {"min_score": 70, "label": "Heritage Silver (minor enhancement needed)"},
+        "bronze": {"min_score": 50, "label": "Heritage Bronze (significant processing needed)"},
+        "retry": {"min_score": 0, "label": "Needs re-separation"}
+      },
+      "target_days_1_2": 70
+    }
+  },
+  "bleed_detection": {
+    "per_instrument_thresholds_db": {
+      "sitar": -15,
+      "tabla": -12,
+      "harmonium": -15,
+      "tanpura": -10,
+      "dhol": -10,
+      "sarangi": -15,
+      "electric_guitar": -15,
+      "synthesizer": -12
+    },
+    "severity_levels": {
+      "clean": "energy_ratio < threshold - 5 dB",
+      "mild": "threshold - 5 dB <= energy_ratio < threshold",
+      "severe": "energy_ratio >= threshold"
+    }
+  },
+  "noise_estimation": {
+    "snr_decision_flow": {
+      "good": {"min_snr_db": 30, "preprocessing": "none", "note": "Direct Demucs"},
+      "moderate": {"min_snr_db": 15, "preprocessing": "wiener_filter", "note": "Wiener → Demucs"},
+      "heavy": {"min_snr_db": 5, "preprocessing": "spectral_subtraction_then_wiener", "note": "SpSub → Wiener → Demucs"},
+      "severe": {"min_snr_db": 0, "preprocessing": "adobe_enhance_api", "note": "Adobe AI → Demucs"}
+    }
+  }
+}
