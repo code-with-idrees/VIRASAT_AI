@@ -1,0 +1,165 @@
+{
+  "test_songs": [
+    {
+      "id": 1,
+      "song_title": "Mujhse Pehli Si Mohabbat",
+      "artist": "Noor Jehan",
+      "era": "1962",
+      "era_category": "Era 1: Golden Film Era",
+      "genre": "Film/Classical",
+      "expected_difficulty": "HARDEST",
+      "difficulty_score": 10,
+      "primary_challenge": "Mono recording, analog hiss, full orchestra bleed",
+      "instruments_present": [
+        "harmonium",
+        "tabla",
+        "sarangi",
+        "sitar"
+      ],
+      "recording_quality": {
+        "channel": "mono",
+        "estimated_snr_db": 20,
+        "common_artifacts": [
+          "tape_hiss",
+          "vinyl_crackle",
+          "60hz_hum"
+        ]
+      },
+      "youtube_url": "https://www.youtube.com/watch?v=2purc8WbAls",
+      "spotify_url": "https://open.spotify.com/track/4fNInG9166uY7G0G0yE7Wp",
+      "notes": "Official EMI Pakistan upload. High-pass filter needed to manage the 60Hz hum before Demucs processing."
+    },
+    {
+      "id": 2,
+      "song_title": "Ranjish Hi Sahi",
+      "artist": "Mehdi Hassan",
+      "era": "1970s",
+      "era_category": "Era 2: Classical/Ghazal Golden Age",
+      "genre": "Ghazal",
+      "expected_difficulty": "HARD",
+      "difficulty_score": 8,
+      "primary_challenge": "Baritone voice overlaps harmonium fundamental frequency (200-800 Hz)",
+      "instruments_present": [
+        "harmonium",
+        "tabla",
+        "tanpura"
+      ],
+      "recording_quality": {
+        "channel": "mono",
+        "estimated_snr_db": 30,
+        "common_artifacts": [
+          "harmonium_bleed",
+          "room_reverb"
+        ]
+      },
+      "youtube_url": "https://www.youtube.com/watch?v=Xc6uwbXpmUY",
+      "spotify_url": "https://open.spotify.com/track/1ZunMreX3m9N66B2u4EInM",
+      "notes": "EMI Pakistan version. The definitive test for harmonium/vocal separation. Check for phasing artifacts in the vocals."
+    },
+    {
+      "id": 3,
+      "song_title": "Chupke Chupke Raat Din",
+      "artist": "Ghulam Ali",
+      "era": "1982",
+      "era_category": "Era 2: Classical/Ghazal Golden Age",
+      "genre": "Ghazal",
+      "expected_difficulty": "MEDIUM",
+      "difficulty_score": 6,
+      "primary_challenge": "Complex sitar accompaniment with harmonic overtones bleeding into vocal range",
+      "instruments_present": [
+        "sitar",
+        "tabla",
+        "harmonium"
+      ],
+      "recording_quality": {
+        "channel": "stereo",
+        "estimated_snr_db": 40,
+        "common_artifacts": [
+          "sitar_harmonics_bleed"
+        ]
+      },
+      "youtube_url": "https://www.youtube.com/watch?v=fR2uqWvlLYI",
+      "spotify_url": "https://open.spotify.com/track/3ZpS29B5o6XvT6YF9CjL9i",
+      "notes": "Nikaah soundtrack version. Sitar sympathetic strings often get misclassified as 'other' or 'vocals' by AI models."
+    },
+    {
+      "id": 4,
+      "song_title": "Dil Dil Pakistan",
+      "artist": "Vital Signs",
+      "era": "1987",
+      "era_category": "Era 3: Pop Revolution",
+      "genre": "Pop Rock",
+      "expected_difficulty": "EASY",
+      "difficulty_score": 3,
+      "primary_challenge": "Standard rock band separation - Demucs is well-trained for this",
+      "instruments_present": [
+        "electric_guitar",
+        "drums",
+        "bass",
+        "keyboards"
+      ],
+      "recording_quality": {
+        "channel": "stereo",
+        "estimated_snr_db": 50,
+        "common_artifacts": [
+          "tape_saturation"
+        ]
+      },
+      "youtube_url": "https://www.youtube.com/watch?v=CFShyccn9lI",
+      "spotify_url": "https://open.spotify.com/track/2ZbtQO7Y9Yq3C9E2i5X2fF",
+      "notes": "Official Lyrical Video from EMI. Clean synth-pop production. Excellent for testing drum-transient preservation."
+    },
+    {
+      "id": 5,
+      "song_title": "Sayonee",
+      "artist": "Junoon",
+      "era": "1997",
+      "era_category": "Era 3: Pop Revolution",
+      "genre": "Sufi Rock",
+      "expected_difficulty": "MEDIUM",
+      "difficulty_score": 5,
+      "primary_challenge": "Fusion of sitar + distorted electric guitar + rock drums",
+      "instruments_present": [
+        "electric_guitar",
+        "sitar",
+        "drums",
+        "bass"
+      ],
+      "recording_quality": {
+        "channel": "stereo",
+        "estimated_snr_db": 55,
+        "common_artifacts": [
+          "guitar_distortion_bleed"
+        ]
+      },
+      "youtube_url": "https://www.youtube.com/watch?v=0GLYKYgSE0Y",
+      "spotify_url": "https://open.spotify.com/track/5u1K8M5VlZ5u7X8n9o6X3M",
+      "notes": "Official Junoon upload. Sitar and distorted guitar occupy similar frequency bands; watch for 'bleeding' in the guitar stem."
+    },
+    {
+      "id": 6,
+      "song_title": "Duur",
+      "artist": "Strings",
+      "era": "2000",
+      "era_category": "Era 4: Digital Era",
+      "genre": "Pop Rock",
+      "expected_difficulty": "BASELINE",
+      "difficulty_score": 1,
+      "primary_challenge": "Clean modern production - should achieve near-perfect separation",
+      "instruments_present": [
+        "electric_guitar",
+        "drums",
+        "bass",
+        "keyboards"
+      ],
+      "recording_quality": {
+        "channel": "stereo",
+        "estimated_snr_db": 65,
+        "common_artifacts": []
+      },
+      "youtube_url": "https://www.youtube.com/watch?v=R9n9R_K017U",
+      "spotify_url": "https://open.spotify.com/track/6XkR1mN8o6V6o3T2i8Y2fF",
+      "notes": "Official Stringsonline video. Baseline calibration track. If vocals aren't 100% dry, your model parameters need tuning."
+    }
+  ]
+}
