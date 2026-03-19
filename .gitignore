@@ -1,0 +1,61 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# === Virtual Environments ===
+venv/
+.venv/
+env/
+
+# === Audio Files (large, do not commit) ===
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.m4a
+*.aac
+*.wma
+
+# === Data directories ===
+phase1_extraction_lab/data/raw/
+phase1_extraction_lab/data/stems/
+phase1_extraction_lab/data/enhanced/
+
+# === Demucs model cache ===
+pretrained/
+*.th
+*.pt
+*.pth
+*.ckpt
+
+# === Jupyter Notebooks ===
+.ipynb_checkpoints/
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Reports (generated, can be large) ===
+# Keep report structure but not generated HTML/JSON
+phase1_extraction_lab/data/reports/*.html
+
+# === Logs ===
+*.log
+
+# === Environment variables ===
+.env
+.env.local
