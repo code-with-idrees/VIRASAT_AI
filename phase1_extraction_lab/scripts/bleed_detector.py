@@ -190,7 +190,7 @@ def compute_bleed_scores(audio_path, sr=SAMPLE_RATE, instruments=None):
 
         bleed_scores[name] = {
             "energy_ratio_dB": round(float(bleed_db), 2),
-            "is_bleeding": bleed_db >= threshold,
+            "is_bleeding": bool(bleed_db >= threshold),
             "severity": severity,
             "threshold_db": threshold,
             "frequency_range_hz": f"{profile['low_hz']}-{profile['high_hz']}",
