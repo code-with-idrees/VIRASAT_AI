@@ -71,15 +71,12 @@ def analyze_heritage_track(audio_path, song_name='Unknown'):
     overall_bleed_penalty = compute_overall_bleed_score(bleed_scores)
     bleed_ratio = float(overall_bleed_penalty) / 100.0
     
-    # Determine restoration score (0-100) based on blueprint logic
-    if bleed_ratio < 0.1 and taal_result.get('tempo_consistent', False):
-        restoration_score = 85
-    elif bleed_ratio < 0.25:
-        restoration_score = 65
-    elif bleed_ratio < 0.4:
-        restoration_score = 45
-    else:
-        restoration_score = 25
+    # Determine dynamic restoration score (0-100)
+    base_score = max(0, int(100 - (bleed_ratio * 100)))
+    if not taal_result.get('tempo_consistent', False):
+        base_score = min(base_score, 85)  # Cap at 85 if tempo drifts
+    
+    restoration_score = base_score
         
     report = {
         'song': song_name,

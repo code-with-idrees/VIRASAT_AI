@@ -128,25 +128,10 @@ def compute_spectral_energy(S_power, freqs, low_hz, high_hz):
 
 def compute_bleed_scores(audio_path, sr=SAMPLE_RATE, instruments=None):
     """
-    Compute instrument bleed scores for a vocal stem.
-
-    For each instrument i:
-      Bleed_i = 10 * log10(E_instrument_band / E_vocal_band)
-
-    Parameters:
-        audio_path:  Path to vocal stem WAV file
-        sr:          Sample rate
-        instruments: Dict of instrument profiles (name → {low_hz, high_hz, threshold_db})
-
-    Returns:
-        dict: {
-            instrument_name: {
-                energy_ratio_dB: float,
-                is_bleeding: bool,
-                severity: str ('CLEAN' | 'MILD' | 'SEVERE'),
-                threshold_db: float
-            }
-        }
+    Compute instrument bleed scores using Foreground/Background Separation and HPSS.
+    
+    This ensures that the loud Voice harmonics are NOT mathematically confused 
+    with Sitar/Tabla bleed in the same frequency bands.
     """
     if not LIBROSA_AVAILABLE:
         raise ImportError("librosa is required. Install: pip install librosa")
@@ -154,30 +139,48 @@ def compute_bleed_scores(audio_path, sr=SAMPLE_RATE, instruments=None):
     if instruments is None:
         instruments = load_instrument_profiles()
 
-    # Load audio
     y, sr = librosa.load(str(audio_path), sr=sr, mono=True)
 
-    # Compute STFT → power spectrogram
+    # 1. Compute Base Spectrogram
     S = librosa.stft(y, n_fft=N_FFT, hop_length=HOP_LENGTH)
-    S_power = np.abs(S) ** 2
+    S_mag = np.abs(S)
+    
+    # 2. HPSS: Separate Harmonic and Percussive
+    # Tabla/Dhol will live purely in S_perc
+    S_harm, S_perc = librosa.decompose.hpss(S_mag)
+    
+    # 3. Foreground/Background Separation on Harmonics
+    # The loud continuous vocal is the "foreground". The Sitar bleed is the "background".
+    # We use median filtering to isolate the continuous vocal, and whatever is left is bleed.
+    S_filter = librosa.decompose.nn_filter(S_harm, aggregate=np.median, metric='cosine', width=int(librosa.time_to_frames(2, sr=sr)))
+    S_harm_background = np.minimum(S_harm, S_filter)
+
+    # Power spectrograms
+    S_power_vocal = S_harm ** 2
+    S_power_harm_bleed = S_harm_background ** 2
+    S_power_perc_bleed = S_perc ** 2
+
     freqs = librosa.fft_frequencies(sr=sr, n_fft=N_FFT)
 
-    # Compute vocal band energy (reference)
+    # Compute TRUE vocal reference energy (using full harmonic power)
     E_vocal = compute_spectral_energy(
-        S_power, freqs,
+        S_power_vocal, freqs,
         VOCAL_BAND["low_hz"], VOCAL_BAND["high_hz"]
     )
 
-    # Compute per-instrument bleed scores
     bleed_scores = {}
     for name, profile in instruments.items():
+        # Choose the right spectrogram for the instrument
+        is_percussive = name in ["tabla", "dhol", "mridangam"]
+        target_S_power = S_power_perc_bleed if is_percussive else S_power_harm_bleed
+        
         E_inst = compute_spectral_energy(
-            S_power, freqs,
+            target_S_power, freqs,
             profile["low_hz"], profile["high_hz"]
         )
 
-        # Bleed ratio in dB
-        bleed_db = 10 * np.log10(E_inst / E_vocal + 1e-10)
+        # Bleed ratio in dB against the main vocal energy
+        bleed_db = 10 * np.log10(E_inst / (E_vocal + 1e-10) + 1e-10)
         threshold = profile["threshold_db"]
 
         # Classify severity
