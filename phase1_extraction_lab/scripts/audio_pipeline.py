@@ -12,7 +12,6 @@ import sys
 from pathlib import Path
 
 # Import our modular analysis tools
-from raag_classifier import detect_raag as raw_detect_raag
 from raag_classifier import estimate_tonic, classify_raag
 from taal_detector import detect_taal
 from bleed_detector import compute_bleed_scores, compute_overall_bleed_score
