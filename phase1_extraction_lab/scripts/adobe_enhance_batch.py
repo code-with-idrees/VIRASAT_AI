@@ -47,7 +47,10 @@ def process_day(files_to_process, output_dir, token, daily_limit, queue_file):
             with open(wav_path, 'rb') as f:
                 resp = requests.post(
                     'https://podcast.adobe.com/api/v1/audio',
-                    headers={'Authorization': f'Bearer {token}'},
+                    headers={
+                        'Authorization': f'Bearer {token}',
+                        'x-api-key': 'podcast-web'
+                    },
                     files={'file': (wav_path.name, f, 'audio/wav')}
                 )
                 
@@ -56,7 +59,14 @@ def process_day(files_to_process, output_dir, token, daily_limit, queue_file):
                 remaining_files.append(wav_path_str)
                 continue
                 
-            job_id = resp.json().get('id')
+            try:
+                job_id = resp.json().get('id')
+            except Exception as json_err:
+                print(f"❌ API returned non-JSON response (HTTP {resp.status_code}).")
+                print(f"   Server response: {resp.text[:200]}...")
+                remaining_files.append(wav_path_str)
+                continue
+                
             if not job_id:
                 print(f"❌ No job ID returned by Adobe.")
                 remaining_files.append(wav_path_str)
@@ -70,11 +80,20 @@ def process_day(files_to_process, output_dir, token, daily_limit, queue_file):
                 time.sleep(5)
                 status_r = requests.get(
                     f'https://podcast.adobe.com/api/v1/audio/{job_id}',
-                    headers={'Authorization': f'Bearer {token}'}
+                    headers={
+                        'Authorization': f'Bearer {token}',
+                        'x-api-key': 'podcast-web'
+                    }
                 )
                 
-                if status_r.json().get('status') == 'done':
-                    download_url = status_r.json()['output']['url']
+                try:
+                    status_json = status_r.json()
+                except Exception:
+                    print(f"❌ Status check returned non-JSON. Retrying.")
+                    continue
+                    
+                if status_json.get('status') == 'done':
+                    download_url = status_json['output']['url']
                     audio_data = requests.get(download_url).content
                     out_path = output_dir / f'enhanced_{wav_path.name}'
                     with open(out_path, 'wb') as out:
@@ -122,10 +141,6 @@ def main():
         print("   Pass it via --token or set the ADOBE_SESSION_TOKEN environment variable.")
         print("   You can extract this from the enhance.adobe.com Network tab in DevTools.")
         sys.exit(1)
-        
-    # Auto-strip 'Bearer ' if the user copy-pasted it with the prefix
-    if token.startswith("Bearer "):
-        token = token[7:].strip()
         
     input_path = Path(args.input)
     output_dir = Path(args.output)
