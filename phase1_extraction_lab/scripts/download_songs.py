@@ -80,7 +80,7 @@ def download_audio(url, output_dir=None, filename=None, artist=None):
         "--audio-quality", "0",  # Best quality
         "--output", output_template,
         "--no-playlist",  # Single video only
-        "--js-runtimes", "node",  # Force node for decryption signatures
+        "--no-warnings",  # Suppress noisy warnings
         "--write-info-json",  # Save metadata
         url
     ]

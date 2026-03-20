@@ -137,24 +137,29 @@
       "notes": "Official Junoon upload. Sitar and distorted guitar occupy similar frequency bands; watch for 'bleeding' in the guitar stem."
     },
     {
-  "id": 6,
-  "song_title": "Duur",
-  "artist": "Strings",
-  "era": "2000",
-  "era_category": "Era 4: Digital Era",
-  "genre": "Pop Rock",
-  "expected_difficulty": "BASELINE",
-  "difficulty_score": 1,
-  "primary_challenge": "Clean modern production - should achieve near-perfect separation",
-  "instruments_present": ["electric_guitar", "drums", "bass", "keyboards"],
-  "recording_quality": {
-    "channel": "stereo",
-    "estimated_snr_db": 65,
-    "common_artifacts": []
-  },
-  "youtube_url": "https://www.youtube.com/watch?v=1uU9S_L9uY8",
-  "spotify_url": "https://open.spotify.com/track/4D7vR8XhR8T8T7N7G8",
-  "notes": "UPDATED LINK: Official Vevo/Sony Music India. This is your calibration baseline. Run this first to ensure Demucs is stripping vocals correctly before moving to the high-bleed mono tracks."
-  }
+      "id": 6,
+      "song_title": "Duur",
+      "artist": "Strings",
+      "era": "2000",
+      "era_category": "Era 4: Digital Era",
+      "genre": "Pop Rock",
+      "expected_difficulty": "BASELINE",
+      "difficulty_score": 1,
+      "primary_challenge": "Clean modern production - should achieve near-perfect separation",
+      "instruments_present": [
+        "electric_guitar",
+        "drums",
+        "bass",
+        "keyboards"
+      ],
+      "recording_quality": {
+        "channel": "stereo",
+        "estimated_snr_db": 65,
+        "common_artifacts": []
+      },
+      "youtube_url": "https://youtu.be/NgEQL8UOAG4?si=ZT94ik9Hu_FHxMpQ",
+      "spotify_url": "https://open.spotify.com/track/4D7vR8XhR8T8T7N7G8",
+      "notes": "UPDATED LINK: Official Vevo/Sony Music India. This is your calibration baseline. Run this first to ensure Demucs is stripping vocals correctly before moving to the high-bleed mono tracks."
+    }
   ]
 }

@@ -214,14 +214,20 @@ def compute_overall_bleed_score(bleed_scores):
         severe_count = sum(1 for s in bleed_scores.values() if s["severity"] == "SEVERE")
         return min(100, 50 + severe_count * 15)
 
-    # Compute score based on distance from thresholds
-    margins = []
+    # Compute score from how much each instrument exceeds its bleed threshold.
+    # overshoot = energy_ratio_dB - threshold_db
+    #   → negative: instrument is below threshold (CLEAN) → 0 contribution
+    #   → positive: instrument exceeds threshold (bleeding) → score rises toward 100
+    #
+    # We scale: +15 dB over threshold → ~100 (severe), 0 dB over → 0, below → 0
+    SEVERITY_SCALE_DB = 15.0  # dB above threshold that maps to score 100
+    penalty_scores = []
     for name, score in bleed_scores.items():
-        # How far below the threshold (positive = good, negative = bad)
-        margin = score["threshold_db"] - score["energy_ratio_dB"]
-        margins.append(max(0, 20 - margin) * 5)  # Scale to 0-100
+        overshoot = score["energy_ratio_dB"] - score["threshold_db"]
+        penalty = max(0.0, overshoot / SEVERITY_SCALE_DB * 100)
+        penalty_scores.append(min(100.0, penalty))
 
-    return min(100, int(np.mean(margins)))
+    return int(np.mean(penalty_scores))
 
 
 def generate_spectrogram_plot(audio_path, bleed_scores, output_path=None):

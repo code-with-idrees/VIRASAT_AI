@@ -97,8 +97,14 @@ def find_audio_files(input_path):
     if input_path.is_dir():
         files = []
         for ext in SUPPORTED_AUDIO_EXTENSIONS:
-            files.extend(input_path.glob(f"*{ext}"))
-        return sorted(files)
+            # rglob = recursive: finds WAVs in subdirs (e.g. data/raw/Noor_Jehan/song.wav)
+            files.extend(input_path.rglob(f"*{ext}"))
+        files = sorted(set(files))  # deduplicate
+        if files:
+            print(f"\n📂 Found {len(files)} audio file(s) in {input_path}:")
+            for f in files:
+                print(f"   • {f.name}  ({f.parent.name}/)")
+        return files
 
     print(f"❌ Path not found: {input_path}")
     return []
