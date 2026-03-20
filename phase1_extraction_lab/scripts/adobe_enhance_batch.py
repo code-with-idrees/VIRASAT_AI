@@ -123,6 +123,10 @@ def main():
         print("   You can extract this from the enhance.adobe.com Network tab in DevTools.")
         sys.exit(1)
         
+    # Auto-strip 'Bearer ' if the user copy-pasted it with the prefix
+    if token.startswith("Bearer "):
+        token = token[7:].strip()
+        
     input_path = Path(args.input)
     output_dir = Path(args.output)
     
