@@ -231,9 +231,9 @@ def analyze_stem(estimated_path, reference_path=None, sr=44100):
 
     result = {
         "file": str(estimated_path),
-        "duration_seconds": round(len(estimated) / sr, 2),
-        "sample_rate": sr,
-        "snr_db": round(snr, 2),
+        "duration_seconds": round(float(len(estimated) / sr), 2),
+        "sample_rate": int(sr),
+        "snr_db": round(float(snr), 2),
     }
 
     # If reference is available, compute BSS metrics
@@ -247,14 +247,15 @@ def analyze_stem(estimated_path, reference_path=None, sr=44100):
             sdr=bss["sdr_db"],
             sir=bss["sir_db"],
             sar=bss["sar_db"],
-            snr=snr,
+            snr=float(snr),
         )
-        result["virasat_score"] = virasat
+        result["virasat_score"] = float(virasat)
         result["virasat_grade"] = classify_virasat_score(virasat)
     else:
         result["note"] = "No reference audio — BSS metrics (SDR/SIR/SAR) require a clean reference"
         # Estimate Virasat Score from SNR alone (limited)
-        result["virasat_score_estimate"] = round(normalize(snr, 0, 60) * VIRASAT_WEIGHTS["snr"], 1)
+        estimate = normalize(float(snr), 0, 60) * VIRASAT_WEIGHTS["snr"]
+        result["virasat_score_estimate"] = round(float(estimate), 1)
 
     return result
 
