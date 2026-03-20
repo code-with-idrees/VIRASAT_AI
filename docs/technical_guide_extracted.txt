@@ -1,0 +1,724 @@
+VIRASAT.AI
+Phase 1: The Extraction Lab
+Complete Technical Build Guide — Days 1 through 5
+Demucs v4  •  Adobe Podcast Enhance  •  Librosa  •  Raag Classifier
+NUCES FAST  |  Solo Founder  |  $0 Budget  |  40 Hours
+PHASE 1 AT A GLANCE
+DURATION
+EFFORT
+COST
+OUTPUT
+Days 1–5
+~40 Hours
+$0 (All Free)
+Clean Vocals + Raag Detector
+PHASE 1 — CONTEXT
+Why The Extraction Lab is Your Foundation
+Everything in Virasat.AI depends on clean audio. Garbage in = garbage out.
+The Extraction Lab is the most critical phase of the entire Virasat.AI system. Without clean, separated audio stems — a pure vocal track free of instrument bleed — every downstream step (Raag-Lock, Taal Quantizer, Ghost Collaboration, music video sync) will fail or produce unusable output.
+This guide walks you through every step of Days 1–5 in exact, executable detail. Every tool invocation, every Python script, every edge case, every fix. Nothing is assumed. If you follow this document precisely, you will hit all five Win Conditions on schedule.
+THE CORE INSIGHT FROM YOUR BLUEPRINT
+"This is not a music problem. It is a data pipeline problem. Old audio = corrupted, low-bitrate data. The solution is an automated AI engine that cleans, analyzes, and re-orchestrates music while preserving its cultural DNA." — Virasat.AI Founder Blueprint, Section 01
+DAYS 1–2
+Stem Separation with Demucs v4
+Goal: Isolate clean vocal WAVs from 3 heritage recordings
+Step 1: Environment Setup on Google Colab
+Open Google Colab (colab.research.google.com) and create a new notebook. The first and most important step is switching to a GPU runtime — Demucs is computationally intensive and will time out on CPU.
+How to enable GPU in Colab:
+Click Runtime → Change runtime type
+Set Hardware accelerator to T4 GPU
+Click Save
+# ── CELL 1: Install Demucs v4 ──
+!pip install -q demucs
+!pip install -q yt-dlp
+ 
+# Verify GPU is available
+import torch
+print('CUDA available:', torch.cuda.is_available())
+print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')
+Expected output:
+CUDA available: True   GPU: Tesla T4
+⚠️  CHALLENGE
+If CUDA is False, your runtime was not set correctly. Go to Runtime → Factory Reset Runtime, then repeat the GPU selection step before re-running.
+Step 2: Download Test Songs Using yt-dlp
+For your initial test, use Creative Commons or public domain recordings to avoid copyright issues during development. You will use actual heritage recordings in private pitches later.
+# ── CELL 2: Download audio ──
+import os
+os.makedirs('/content/input_audio', exist_ok=True)
+os.makedirs('/content/stems', exist_ok=True)
+ 
+# Replace URLs with your chosen heritage tracks
+# Use CC-licensed Pakistani folk music for public demos
+!yt-dlp -x --audio-format wav -o '/content/input_audio/%(title)s.%(ext)s' \
+    --audio-quality 0 'YOUR_YOUTUBE_URL_HERE'
+ 
+# Verify download
+!ls -lh /content/input_audio/
+COPYRIGHT NOTE
+For development and private demos: use any recording you want to test the pipeline. For your PUBLIC LinkedIn post and any content you upload online: use only Creative Commons licensed tracks. The Wikimedia Commons audio collection has several Pakistani folk recordings available under CC licenses. Save the Noor Jehan / Ghulam Ali demos for your private Xulfi pitch.
+Step 3: Run Demucs v4 Stem Separation
+Demucs v4 offers two main models. You need to understand which to use for which type of recording — this is the key technical decision of Days 1–2.
+MODEL
+BEST FOR
+htdemucs
+Post-1990s recordings — cleaner, standard stereo, full frequency range
+htdemucs_ft
+Pre-1990s recordings — fine-tuned model, better at mono audio and heavily degraded sources
+mdx_extra
+Modern pop/rock — very clean but poor on Eastern instruments
+htdemucs_6s
+6-stem output (adds piano + guitar separation) — use only if needed
+Start with htdemucs. If you see significant Sitar bleed into the vocal track, switch to htdemucs_ft. Here is the exact command sequence:
+# ── CELL 3: Run Demucs Stem Separation ──
+ 
+SONG_PATH = '/content/input_audio/YOUR_SONG.wav'
+OUTPUT_DIR = '/content/stems'
+ 
+# First attempt: htdemucs (good baseline)
+!demucs --two-stems=vocals \
+    --out '{OUTPUT_DIR}' \
+    --name 'htdemucs_attempt1' \
+    '{SONG_PATH}'
+ 
+# This creates:
+# /content/stems/htdemucs_attempt1/<song_name>/vocals.wav
+# /content/stems/htdemucs_attempt1/<song_name>/no_vocals.wav
+The --two-stems=vocals flag is crucial — it forces Demucs to output just vocals vs. everything else, which is faster and produces cleaner results than full 4-stem separation for your use case.
+# ── CELL 4: If Sitar bleed detected — switch to htdemucs_ft ──
+ 
+!demucs --two-stems=vocals \
+    --model htdemucs_ft \
+    --out '{OUTPUT_DIR}' \
+    --name 'htdemucs_ft_attempt' \
+    '{SONG_PATH}'
+ 
+# Compare outputs using Python:
+import librosa
+import librosa.display
+import matplotlib.pyplot as plt
+import numpy as np
+ 
+v1, sr = librosa.load('/content/stems/htdemucs_attempt1/<song>/vocals.wav')
+v2, sr = librosa.load('/content/stems/htdemucs_ft_attempt/<song>/vocals.wav')
+ 
+fig, axes = plt.subplots(2, 1, figsize=(14, 6))
+librosa.display.waveshow(v1, sr=sr, ax=axes[0])
+axes[0].set_title('htdemucs output')
+librosa.display.waveshow(v2, sr=sr, ax=axes[1])
+axes[1].set_title('htdemucs_ft output')
+plt.tight_layout()
+plt.savefig('/content/comparison.png')
+print('Saved comparison chart')
+Step 4: Quality Check — Detecting Bleed
+'Bleed' is when instrument frequencies appear in the vocal stem. For 1930s mono recordings, this is the primary challenge. Here is how to programmatically measure bleed — not just guess by ear:
+# ── CELL 5: Bleed Detection Script ──
+import librosa, numpy as np
+ 
+def check_bleed(vocal_path, threshold_db=-40):
+    y, sr = librosa.load(vocal_path, sr=None)
+    
+    # Get spectral contrast — high contrast = instrument present
+    contrast = librosa.feature.spectral_contrast(y=y, sr=sr)
+    mean_contrast = np.mean(contrast)
+    
+    # Get RMS energy in sitar frequency range (250–2000 Hz)
+    stft = np.abs(librosa.stft(y))
+    freqs = librosa.fft_frequencies(sr=sr)
+    sitar_mask = (freqs >= 250) & (freqs <= 2000)
+    sitar_energy = np.mean(stft[sitar_mask, :])
+    
+    # Total vocal energy
+    total_energy = np.mean(stft)
+    bleed_ratio = sitar_energy / (total_energy + 1e-8)
+    
+    print(f'Bleed ratio: {bleed_ratio:.4f}')
+    print(f'Spectral contrast mean: {mean_contrast:.2f}')
+    
+    if bleed_ratio > 0.35:
+        print('HIGH BLEED — switch to htdemucs_ft')
+    elif bleed_ratio > 0.2:
+        print('MODERATE BLEED — acceptable for restoration')
+    else:
+        print('CLEAN — proceed to Adobe Enhance')
+    return bleed_ratio
+ 
+# Run on your output
+check_bleed('/content/stems/htdemucs_attempt1/<song>/vocals.wav')
+✅  WIN CONDITION
+You have a clean, isolated vocal WAV file from at least 2 songs with bleed ratio below 0.25. Use the waveshow comparison chart to visually confirm. If bleed is still high after htdemucs_ft, proceed anyway — Adobe Enhance in Days 3-4 will help further.
+NO GPU? NO PROBLEM
+Running the Full Pipeline Without a GPU Laptop
+You do not need a GPU on your local machine. Here are all your free alternatives.
+YOUR SITUATION
+You have a standard laptop with no NVIDIA GPU and no CUDA. This is completely fine. Demucs requires a GPU only for speed, not for functionality. The entire Phase 1 pipeline can run on free cloud platforms that provide GPU access. Your laptop is only needed for light file management, reviewing outputs, and running Librosa (which needs no GPU at all).
+Option A: Google Colab (Recommended — Start Here)
+Google Colab gives you a free T4 GPU (15GB VRAM) in the browser. This is the primary platform for running Demucs in this blueprint. No installation is needed on your laptop at all.
+WHAT YOU GET FREE
+LIMITS TO KNOW
+T4 GPU (15GB VRAM) — enough for Demucs v4 on any song
+Session disconnects after ~4-6 hours of inactivity
+~77GB disk space per session
+Disk resets on disconnect — always download outputs immediately
+Python 3.10 pre-installed, pip works normally
+Colab may queue you during peak hours (evenings PKT)
+Runs in any browser on your laptop
+Free tier does not guarantee GPU availability 24/7
+CRITICAL HABIT: DOWNLOAD IMMEDIATELY AFTER EVERY JOB
+Every time Demucs finishes a song, download the output WAV to your laptop right away. Colab sessions reset without warning and you will lose all processed files. Better yet, mount Google Drive so outputs save automatically.
+# ── Mount Google Drive to auto-save all outputs (do this first) ──
+from google.colab import drive
+drive.mount('/content/drive')
+ 
+# Set output directory to Drive so nothing is lost on session reset
+OUTPUT_DIR = '/content/drive/MyDrive/virasat_ai/stems'
+import os
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+ 
+# Pass OUTPUT_DIR to all Demucs commands:
+!demucs --two-stems=vocals --out '{OUTPUT_DIR}' 'your_song.wav'
+ 
+# All outputs now save directly to Google Drive — safe even if Colab resets
+Option B: Kaggle Notebooks (Best for Overnight Batch Jobs)
+Kaggle gives you 30 free GPU hours per week with sessions that run up to 9 hours without interruption. This is the better choice for processing multiple songs in a single batch while you sleep.
+KAGGLE ADVANTAGE vs COLAB
+HOW TO SET UP
+30 GPU hours per week — far more generous than Colab
+Go to kaggle.com and sign up (free, takes 2 minutes)
+9-hour session limit — run overnight without babysitting
+Create New Notebook, then Settings panel on the right
+20GB RAM — handles larger audio files without issues
+Accelerator: select GPU T4 x2, then turn Internet ON
+Files in /kaggle/working/ persist for the session
+Same pip install demucs and Demucs commands work identically
+# ── Kaggle Setup — paste into the first cell ──
+!pip install -q demucs yt-dlp librosa soundfile
+ 
+import torch
+print('GPU:', torch.cuda.get_device_name(0))
+# Expected: GPU: Tesla T4
+ 
+# Download song
+!yt-dlp -x --audio-format wav -o '/kaggle/working/%(title)s.%(ext)s' 'YOUR_URL'
+ 
+# Run Demucs — outputs go to /kaggle/working/stems/
+!demucs --two-stems=vocals --out '/kaggle/working/stems' '/kaggle/working/SONG.wav'
+ 
+# Download: click the output file in the right-side Output panel -> Download
+Option C: CPU Mode on Your Laptop (No Internet Needed)
+If you cannot access Colab or Kaggle, Demucs runs entirely on CPU. It is slower (5 to 15 minutes per song vs. 30 seconds on GPU) but produces exactly the same output quality. For a 3-song test batch, this is completely viable — just run it overnight.
+# ── CPU Mode on your laptop ──
+ 
+# Step 1: Install (one-time, in your terminal)
+pip install demucs
+ 
+# Step 2: Run with --device cpu flag
+demucs --two-stems=vocals --device cpu -o './stems' './your_song.wav'
+ 
+# Time estimate per song (CPU only):
+#   Modern laptop (Intel i5/i7, 8GB RAM) : ~5-8 minutes per song
+#   Older laptop or less RAM             : ~12-18 minutes per song
+ 
+# Step 3: Batch all 3 songs and run overnight — Python script:
+import subprocess
+songs = ['noor_jehan_test.wav', 'ghulam_ali_test.wav', 'vital_signs_test.wav']
+for song in songs:
+    print(f'Starting: {song}')
+    subprocess.run(['demucs', '--two-stems=vocals', '--device', 'cpu',
+                    '-o', './stems', f'./{song}'])
+    print(f'Done: {song}')
+print('All 3 songs complete.')
+Option D: Lightning.ai (Best Persistent Free Cloud IDE)
+Lightning.ai is a free cloud development environment built by the PyTorch team. Unlike Colab, your files persist between sessions. It has a VS Code-style interface with a terminal, making it feel like a real local setup — just in the browser.
+FEATURE
+DETAIL
+Free GPU hours
+22 GPU hours per month on free tier (T4)
+Persistent storage
+Your files stay between sessions — no scrambling to re-download
+Interface
+VS Code in the browser: terminal, file explorer, notebooks all available
+Setup
+lightning.ai → Sign Up → New Studio → select GPU → open Terminal
+Best use case
+Phase 2 and Phase 3 development where you need a stable environment
+Which Option to Use — Quick Decision Guide
+SITUATION
+USE THIS
+SPEED
+COMPLEXITY
+Quick test, 1-2 songs today
+Google Colab
+Fast (GPU)
+Easiest
+Batch 5+ songs overnight
+Kaggle Notebook
+Fast (GPU)
+Easy
+No internet or offline mode
+CPU on your laptop
+Slow (10-15 min/song)
+Easiest
+Long-term stable dev setup
+Lightning.ai
+Fast (GPU)
+Medium
+Librosa / Raag analysis only
+Your laptop CPU
+Instant
+None
+KEY INSIGHT: YOUR LAPTOP IS ONLY NEEDED FOR LIBROSA
+Demucs (heavy GPU work) runs on Colab or Kaggle. Adobe Enhance runs via a Python script that calls their web API — works on any machine. Librosa (Raag Classifier + Taal Detector) is pure Python/NumPy with zero GPU requirement. Run: pip install librosa in your laptop terminal and all Day 5 analysis scripts work natively. The recommended split: heavy audio processing on the cloud, all analysis and coding on your laptop.
+✅  WIN CONDITION
+You can run the complete Phase 1 pipeline with no GPU on your laptop. Recommended workflow: Demucs on Google Colab (GPU, free) with Drive mount to auto-save stems, then Adobe Enhance via Python script from your laptop, then all Librosa analysis scripts on your laptop CPU. Total laptop CPU processing time: under 2 minutes per song.
+DAYS 3–4
+Audio Restoration with Adobe Podcast Enhance
+Goal: Make 1940s vocals sound like a 2026 studio microphone
+Understanding What Adobe Enhance Does
+Adobe Podcast Enhance uses a neural model specifically trained on voice restoration. It does three things automatically: removes background noise and hiss, restores missing high-frequency detail (treble presence), and applies de-reverb to old room-acoustic recordings. For a 1930s Noor Jehan recording, this single step can transform audio quality more dramatically than any other tool in the pipeline.
+FREE TIER LIMITS
+Adobe Enhance's free tier allows a limited number of uploads per day (typically 3–5 files, each up to 1 hour). The automation script below handles this by building a queue that retries automatically the next day. Never waste a daily upload slot on a file you have not already cleaned with Demucs.
+Step 5: Batch Automation Script for Adobe Enhance
+Adobe Enhance does not have a public API, but it exposes an internal endpoint that can be called via Python. This script automates the upload, processing, and download cycle:
+# ── adobe_enhance_batch.py ── Save this as a standalone script ──
+ 
+import requests, time, os, json
+from pathlib import Path
+ 
+# NOTE: Get your session token from browser DevTools
+# 1. Open enhance.adobe.com and log in
+# 2. Open DevTools → Network tab
+# 3. Upload a file manually and look for the POST request
+# 4. Copy the Authorization header value
+ 
+ADOBE_TOKEN = 'YOUR_ADOBE_SESSION_TOKEN'
+INPUT_DIR = Path('/content/stems')
+OUTPUT_DIR = Path('/content/enhanced')
+OUTPUT_DIR.mkdir(exist_ok=True)
+ 
+DAILY_LIMIT = 5  # Conservative limit
+QUEUE_FILE = '/content/enhance_queue.json'
+ 
+def load_queue():
+    if os.path.exists(QUEUE_FILE):
+        with open(QUEUE_FILE) as f: return json.load(f)
+    return []
+ 
+def save_queue(q):
+    with open(QUEUE_FILE, 'w') as f: json.dump(q, f)
+ 
+def process_day(files_today):
+    for wav_path in files_today[:DAILY_LIMIT]:
+        print(f'Uploading: {wav_path}')
+        # Upload
+        with open(wav_path, 'rb') as f:
+            resp = requests.post(
+                'https://podcast.adobe.com/api/v1/audio',
+                headers={'Authorization': f'Bearer {ADOBE_TOKEN}'},
+                files={'file': (os.path.basename(wav_path), f, 'audio/wav')}
+            )
+        if resp.status_code != 200:
+            print(f'Upload failed: {resp.text}')
+            continue
+        job_id = resp.json().get('id')
+        print(f'  Job ID: {job_id} — waiting...')
+        # Poll for completion
+        for _ in range(60):  # Max 5 minutes wait
+            time.sleep(5)
+            status_r = requests.get(
+                f'https://podcast.adobe.com/api/v1/audio/{job_id}',
+                headers={'Authorization': f'Bearer {ADOBE_TOKEN}'}
+            )
+            if status_r.json().get('status') == 'done':
+                download_url = status_r.json()['output']['url']
+                audio_data = requests.get(download_url).content
+                out_path = OUTPUT_DIR / f'enhanced_{os.path.basename(wav_path)}'
+                with open(out_path, 'wb') as out: out.write(audio_data)
+                print(f'  Saved: {out_path}')
+                break
+        else:
+            print(f'  Timeout for {wav_path}')
+ 
+# Collect all vocal WAVs
+all_vocals = list(INPUT_DIR.rglob('vocals.wav'))
+process_day(all_vocals)
+Step 6: Frequency Spectrum Comparison
+After enhancement, verify the improvement by comparing frequency spectrums. This is your proof-of-concept visualization — save it, you will use it in your LinkedIn demo post.
+# ── CELL 6: Before / After Frequency Analysis ──
+import librosa, librosa.display, matplotlib.pyplot as plt, numpy as np
+ 
+def plot_spectrum_comparison(original_path, enhanced_path, title=''):
+    y_orig, sr = librosa.load(original_path, sr=22050)
+    y_enh, _  = librosa.load(enhanced_path,  sr=22050)
+    
+    D_orig = librosa.amplitude_to_db(np.abs(librosa.stft(y_orig)), ref=np.max)
+    D_enh  = librosa.amplitude_to_db(np.abs(librosa.stft(y_enh)),  ref=np.max)
+    
+    fig, axes = plt.subplots(1, 2, figsize=(16, 5))
+    fig.suptitle(f'{title} — Spectrum Comparison', fontsize=14, fontweight='bold')
+    
+    librosa.display.specshow(D_orig, sr=sr, x_axis='time', y_axis='hz', ax=axes[0])
+    axes[0].set_title('BEFORE: Raw Demucs Output', color='red')
+    axes[0].set_ylim(0, 8000)
+    
+    librosa.display.specshow(D_enh, sr=sr, x_axis='time', y_axis='hz', ax=axes[1])
+    axes[1].set_title('AFTER: Adobe Enhanced', color='green')
+    axes[1].set_ylim(0, 8000)
+    
+    plt.tight_layout()
+    plt.savefig(f'/content/{title}_spectrum.png', dpi=150, bbox_inches='tight')
+    plt.show()
+    print('Saved spectrum comparison image')
+ 
+plot_spectrum_comparison(
+    '/content/stems/htdemucs_attempt1/<song>/vocals.wav',
+    '/content/enhanced/enhanced_vocals.wav',
+    title='Noor_Jehan_1940'
+)
+✅  WIN CONDITION
+A 1940s Noor Jehan vocal that sounds like it was recorded in a modern studio. The spectrum comparison chart shows: (1) filled-in high-frequency range above 4kHz that was missing in the original, (2) reduced noise floor (darker baseline on the spectrogram), (3) cleaner transients. This image is your first shareable demo asset.
+DAY 5
+The Raag Classifier & Taal Detector
+Goal: Automated musical DNA extraction — Raag, BPM, and Taal from any audio file
+Understanding the Music Theory (Non-Musician Version)
+You do not need to understand music theory deeply. You need to understand it as a data structure problem — which is exactly what it is.
+MUSICAL CONCEPT
+DATA EQUIVALENT
+Raag (Indian/Pakistani scale)
+A whitelist of allowed note frequencies from the 12 chromatic pitches
+Taal (rhythmic cycle)
+A repeating integer time signature: 4/4, 6/8, 7/8, 10/8
+Chromatic pitch class
+An integer 0–11 representing one of 12 musical notes
+Chroma vector
+A 12-dimensional float array showing the energy at each pitch class
+Microtonal gamaka (ornament)
+A frequency that slides between two pitch classes — hard for AI to classify
+Step 7: Raag Frequency Map — The Core Data Structure
+Every Raag is defined by which of the 12 chromatic pitch classes it uses. This is your Raag-Lock foundation. Here is the map for the five most common Pakistani Raags:
+# ── raag_classifier.py — Core Data Structures ──
+ 
+# Pitch classes: 0=C, 1=C#, 2=D, 3=D#, 4=E, 5=F,
+#                6=F#, 7=G, 8=G#, 9=A, 10=A#, 11=B
+ 
+RAAG_DEFINITIONS = {
+    'Bhairavi': {
+        'notes': {0, 1, 3, 5, 7, 8, 10},  # Sa, Komal Re, Komal Ga, Ma, Pa, Komal Dha, Komal Ni
+        'mood': 'Sad, devotional, morning',
+        'associated_artists': ['Noor Jehan (late recordings)', 'Abida Parveen'],
+        'taal_common': ['Teentaal', 'Keherwa'],
+    },
+    'Yaman': {
+        'notes': {0, 2, 4, 6, 7, 9, 11},  # Sa, Re, Ga, Tivra Ma, Pa, Dha, Ni
+        'mood': 'Romantic, evening',
+        'associated_artists': ['Ghulam Ali', 'Mehdi Hassan'],
+        'taal_common': ['Teentaal', 'Rupak'],
+    },
+    'Darbari': {
+        'notes': {0, 2, 3, 5, 7, 8, 10},  # Sa, Re, Komal Ga, Ma, Pa, Komal Dha, Komal Ni
+        'mood': 'Serious, regal, late night',
+        'associated_artists': ['Ghulam Ali', 'Ustad Salamat Ali'],
+        'taal_common': ['Teentaal'],
+    },
+    'Kafi': {
+        'notes': {0, 2, 3, 5, 7, 9, 10},  # Sa, Re, Komal Ga, Ma, Pa, Dha, Komal Ni
+        'mood': 'Folk-like, devotional, Sufi',
+        'associated_artists': ['Abida Parveen', 'Allan Faqir'],
+        'taal_common': ['Keherwa', 'Dadra'],
+    },
+    'Bageshri': {
+        'notes': {0, 2, 3, 5, 7, 8, 10},  # Similar to Darbari but Shuddha Dha
+        'mood': 'Romantic longing, late night',
+        'associated_artists': ['Mehdi Hassan (Ranjish hi sahi)'],
+        'taal_common': ['Teentaal', 'Ektaal'],
+    },
+}
+ 
+# Taal definitions: (beats_per_cycle, subdivisions)
+TAAL_DEFINITIONS = {
+    'Keherwa':  {'beats': 8,  'pattern': [4, 4],       'time_sig': '4/4'},
+    'Teentaal': {'beats': 16, 'pattern': [4, 4, 4, 4], 'time_sig': '4/4'},
+    'Dadra':    {'beats': 6,  'pattern': [3, 3],       'time_sig': '6/8'},
+    'Rupak':    {'beats': 7,  'pattern': [3, 2, 2],    'time_sig': '7/8'},
+    'Jhaptaal': {'beats': 10, 'pattern': [2, 3, 2, 3], 'time_sig': '10/8'},
+}
+Step 8: Raag Detection Algorithm
+# ── CELL 7: Raag Classifier Full Script ──
+import librosa, numpy as np
+ 
+def detect_raag(audio_path, top_n=3):
+    '''
+    Detects the most likely Raag for a given audio file.
+    Returns top_n candidates with confidence scores.
+    '''
+    y, sr = librosa.load(audio_path, sr=22050, mono=True)
+    
+    # 1. Extract chroma features (12-dimensional pitch class energy)
+    chroma = librosa.feature.chroma_cqt(y=y, sr=sr, bins_per_octave=36)
+    # Average over time to get overall pitch class distribution
+    mean_chroma = np.mean(chroma, axis=1)  # Shape: (12,)
+    
+    # 2. Normalize to get probability-like distribution
+    if mean_chroma.sum() > 0:
+        mean_chroma = mean_chroma / mean_chroma.sum()
+    
+    # 3. Find the tonic (most energetic pitch class = likely Sa/root)
+    tonic = np.argmax(mean_chroma)
+    
+    # 4. Transpose chroma to Sa = 0 (normalize around tonic)
+    chroma_normalized = np.roll(mean_chroma, -tonic)
+    
+    # 5. Score each Raag by overlap with detected pitch classes
+    scores = {}
+    for raag_name, raag_data in RAAG_DEFINITIONS.items():
+        raag_notes = raag_data['notes']
+        # Sum energy in Raag-allowed notes
+        raag_energy = sum(chroma_normalized[n] for n in raag_notes)
+        # Penalize energy outside the Raag
+        outside_notes = set(range(12)) - raag_notes
+        outside_energy = sum(chroma_normalized[n] for n in outside_notes)
+        # Confidence = raag_energy - penalty for notes outside Raag
+        scores[raag_name] = raag_energy - (0.5 * outside_energy)
+    
+    # 6. Sort by score
+    ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    top_results = ranked[:top_n]
+    
+    # 7. Convert to confidence percentage
+    total = sum(abs(s) for _, s in top_results)
+    results = [
+        (raag, round((score / total) * 100, 1))
+        for raag, score in top_results
+    ]
+    
+    return {
+        'detected_tonic': ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'][tonic],
+        'top_raags': results,
+        'confidence': results[0][1],
+        'is_certain': results[0][1] > 60,
+        'chroma_vector': mean_chroma.tolist(),
+    }
+ 
+# Test it
+result = detect_raag('/content/enhanced/enhanced_vocals.wav')
+print(f"Detected Tonic: {result['detected_tonic']}")
+print(f"Top Raag: {result['top_raags'][0][0]} ({result['top_raags'][0][1]}% confidence)")
+for raag, conf in result['top_raags']:
+    print(f"  {raag}: {conf}%")
+if not result['is_certain']:
+    print('WARNING: Low confidence — likely microtonal ornaments. Manual review recommended.')
+Step 9: Taal (Rhythm Cycle) Detector
+# ── CELL 8: Taal Detector ──
+import librosa, numpy as np
+ 
+def detect_taal(audio_path):
+    '''
+    Detects BPM and maps to the most likely Taal.
+    Eastern music does not always follow strict tempo — we use confidence scoring.
+    '''
+    y, sr = librosa.load(audio_path, sr=22050, mono=True)
+    
+    # 1. Detect tempo (BPM)
+    tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr, units='frames')
+    bpm = float(tempo)
+    beat_times = librosa.frames_to_time(beat_frames, sr=sr)
+    
+    # 2. Analyze beat intervals for consistency
+    if len(beat_times) > 1:
+        intervals = np.diff(beat_times)
+        interval_std = np.std(intervals)
+        is_consistent = interval_std < 0.15  # Less than 150ms variance = consistent tempo
+    else:
+        is_consistent = False
+        interval_std = 999
+    
+    # 3. Detect time signature (look for 3-beat vs 4-beat groupings)
+    onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+    # Check correlation with 3 vs 4 beat patterns
+    score_3 = np.correlate(onset_env, np.array([1,0,0,1,0,0,1,0,0]))[0]
+    score_4 = np.correlate(onset_env, np.array([1,0,0,0,1,0,0,0]))[0]
+    score_6 = np.correlate(onset_env, np.array([1,0,0,1,0,0]))[0]
+    score_7 = np.correlate(onset_env, np.array([1,0,0,1,0,1,0]))[0]
+    
+    # 4. Map to Taal
+    pattern_scores = {'4/4': score_4, '6/8': score_6, '7/8': score_7}
+    detected_sig = max(pattern_scores, key=pattern_scores.get)
+    
+    taal_map = {
+        '4/4': 'Keherwa (8 beats) or Teentaal (16 beats)',
+        '6/8': 'Dadra (6 beats)',
+        '7/8': 'Rupak (7 beats)',
+        '10/8': 'Jhaptaal (10 beats)',
+    }
+    
+    return {
+        'bpm': round(bpm, 1),
+        'time_signature': detected_sig,
+        'likely_taal': taal_map.get(detected_sig, 'Unknown'),
+        'tempo_consistent': is_consistent,
+        'tempo_variance_ms': round(interval_std * 1000, 1),
+        'warning': None if is_consistent else 'Tempo drifts — DTW sync required in Phase 2'
+    }
+ 
+taal_result = detect_taal('/content/enhanced/enhanced_vocals.wav')
+print(f"BPM: {taal_result['bpm']}")
+print(f"Time Signature: {taal_result['time_signature']}")
+print(f"Likely Taal: {taal_result['likely_taal']}")
+print(f"Tempo Consistent: {taal_result['tempo_consistent']}")
+if taal_result['warning']: print(f"WARNING: {taal_result['warning']}")
+Step 10: The Combined Pipeline — Full Output Report
+This is the final script for Day 5. It runs the complete Phase 1 pipeline on any audio file and produces a structured output report — the data that your Streamlit dashboard (Phase 4) will display to users.
+# ── CELL 9: Full Pipeline Report ──
+import json
+ 
+def analyze_heritage_track(audio_path, song_name='Unknown'):
+    print(f'\n=== VIRASAT.AI ANALYSIS: {song_name} ===\n')
+    
+    # Run all detectors
+    raag_result = detect_raag(audio_path)
+    taal_result = detect_taal(audio_path)
+    bleed_ratio = check_bleed(audio_path)
+    
+    # Determine restoration score (0-100)
+    if bleed_ratio < 0.1 and taal_result['tempo_consistent']:
+        restoration_score = 85
+    elif bleed_ratio < 0.25:
+        restoration_score = 65
+    elif bleed_ratio < 0.4:
+        restoration_score = 45
+    else:
+        restoration_score = 25
+    
+    report = {
+        'song': song_name,
+        'raag': raag_result['top_raags'][0][0],
+        'raag_confidence': raag_result['confidence'],
+        'tonic': raag_result['detected_tonic'],
+        'bpm': taal_result['bpm'],
+        'taal': taal_result['likely_taal'],
+        'time_signature': taal_result['time_signature'],
+        'tempo_drift': not taal_result['tempo_consistent'],
+        'bleed_ratio': round(bleed_ratio, 3),
+        'restoration_score': restoration_score,
+        'ready_for_phase2': restoration_score >= 45,
+        'dtw_required': not taal_result['tempo_consistent'],
+        'warnings': [w for w in [taal_result.get('warning')] if w],
+    }
+    
+    print(json.dumps(report, indent=2))
+    
+    if not report['ready_for_phase2']:
+        print('\n>> RECOMMENDATION: This recording needs manual restoration first.')
+        print('   Restoration score below 45 — AI cannot reliably fix this track.')
+    else:
+        print(f'\n>> READY FOR PHASE 2: Raag-Lock + Taal Quantizer')
+    
+    return report
+ 
+# Run on all 3 test songs
+songs = {
+    'song1': ('/content/enhanced/enhanced_song1.wav', 'Noor Jehan — Test 1'),
+    'song2': ('/content/enhanced/enhanced_song2.wav', 'Ghulam Ali — Test 1'),
+    'song3': ('/content/enhanced/enhanced_song3.wav', 'Vital Signs — Test 1'),
+}
+ 
+reports = {}
+for key, (path, name) in songs.items():
+    reports[key] = analyze_heritage_track(path, name)
+ 
+# Save reports to JSON (used by Streamlit dashboard in Phase 4)
+with open('/content/analysis_reports.json', 'w') as f:
+    json.dump(reports, f, indent=2)
+print('\nAll reports saved to analysis_reports.json')
+✅  WIN CONDITION
+Script outputs a complete JSON report for each song including: Raag name (e.g., 'Bhairavi'), confidence score (target: 85%+), BPM, Taal name, and a Restoration Score. At least 2 of your 3 songs should score 45+ on Restoration and show the correct Raag with 75%+ confidence. These JSON reports are the data layer your Phase 4 Streamlit dashboard will consume.
+TROUBLESHOOTING
+Common Problems & Exact Fixes
+Every issue you will likely encounter, and the precise fix for each
+Problem 1: Demucs Runs Out of Memory (CUDA OOM Error)
+# Fix: Add --segment flag to process in smaller chunks
+!demucs --two-stems=vocals --segment 30 '{SONG_PATH}' --out '{OUTPUT_DIR}'
+ 
+# If still failing, use CPU (slower but reliable):
+!demucs --two-stems=vocals --device cpu '{SONG_PATH}' --out '{OUTPUT_DIR}'
+Problem 2: Colab Session Times Out Mid-Processing
+# Prevention: Keep Colab alive by running this in browser console
+# (Press F12 → Console → paste this):
+ 
+function ClickConnect(){
+  console.log('Keeping Colab alive...');
+  document.querySelector('#top-toolbar > colab-connect-button')
+    .shadowRoot.querySelector('#connect').click();
+}
+setInterval(ClickConnect, 60000);
+ 
+# Or: Save intermediate WAV files after each major step
+# so you can resume from the last good checkpoint.
+Problem 3: Raag Classifier Returns 'Unknown' or Very Low Confidence
+# Root cause: microtonal gamakas (ornaments) confuse the chroma extractor
+ 
+# Fix 1: Try analyzing only the first 30 seconds (intro usually cleaner)
+y_clip, sr = librosa.load(audio_path, sr=22050, offset=0, duration=30)
+ 
+# Fix 2: Use higher resolution chroma (more bins per octave)
+chroma = librosa.feature.chroma_cqt(y=y, sr=sr, bins_per_octave=72)  # Default is 36
+ 
+# Fix 3: Accept ambiguous result and flag for human review
+# In your dashboard, show: 'Raag uncertain — top 3 candidates shown'
+# This is MORE honest and builds trust with producers like Xulfi
+Problem 4: Adobe Enhance Returns 'Overprocessed' Tinny Sound
+# This happens with already-clean audio — Enhance adds too much processing
+ 
+# Fix: Mix original and enhanced signal at a ratio
+import librosa, soundfile as sf, numpy as np
+ 
+y_orig, sr = librosa.load('original_vocals.wav', sr=None)
+y_enh,  _  = librosa.load('enhanced_vocals.wav',  sr=None)
+ 
+# Align lengths
+min_len = min(len(y_orig), len(y_enh))
+y_orig, y_enh = y_orig[:min_len], y_enh[:min_len]
+ 
+# Blend: 0.7 enhanced, 0.3 original — adjust by ear
+ENHANCE_MIX = 0.7
+y_blended = (ENHANCE_MIX * y_enh) + ((1 - ENHANCE_MIX) * y_orig)
+ 
+sf.write('blended_vocals.wav', y_blended, sr)
+print('Blended version saved')
+PHASE 1 DELIVERABLES
+Files to Commit to GitHub by Day 5
+Your Phase 1 output package — everything the next phases depend on
+FILE / FOLDER
+PURPOSE
+/content/input_audio/*.wav
+3 raw downloaded heritage songs (your test subjects)
+/content/stems/htdemucs/**/*
+Separated vocal and no_vocal WAV stems from Demucs
+/content/enhanced/*.wav
+Adobe-enhanced vocal tracks — the clean pipeline output
+raag_classifier.py
+Standalone Raag detection module — imported by all later phases
+taal_detector.py
+Taal and BPM detection module — used by Phase 2 Taal Quantizer
+audio_pipeline.py
+Full Phase 1 pipeline runner — runs all steps on a new input file
+analysis_reports.json
+JSON output of the combined analyzer — consumed by Phase 4 dashboard
+spectrums/*.png
+Before/After frequency spectrum images — used in LinkedIn demo post
+requirements_phase1.txt
+pip requirements: demucs, librosa, soundfile, matplotlib, requests
+# requirements_phase1.txt
+demucs>=4.0.0
+librosa>=0.10.0
+soundfile>=0.12.0
+matplotlib>=3.7.0
+numpy>=1.24.0
+requests>=2.31.0
+yt-dlp>=2024.1.0
+basic-pitch>=0.2.5
+PHASE 1 COMPLETE — WHAT COMES NEXT
+With clean stems and musical DNA extracted, Phase 2 builds the Raag-Lock Filter and Taal Quantizer. Your analysis_reports.json feeds directly into the generation engine — no manual intervention required. Days 6–12 will use everything you built here.
+Phase 2: The Eastern Soul Engine  →  Days 6–12  |  56 Hours
+Raag-Lock Filter  •  DTW Tempo Sync  •  Ghost Collaboration (RVC)
+"We don't need to choose between Heritage and Innovation. We can have both."
+— Virasat.AI Founder Blueprint

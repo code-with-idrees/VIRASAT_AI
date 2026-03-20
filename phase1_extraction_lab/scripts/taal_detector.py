@@ -25,88 +25,64 @@ except ImportError:
 
 # ─── Common Taal Patterns ─────────────────────────────────────
 
-TAAL_DATABASE = {
-    "teentaal": {
-        "name": "Teentaal",
-        "beats": 16,
-        "divisions": [4, 4, 4, 4],
-        "clap_pattern": ["Dha", "Dhin", "Dhin", "Dha",
-                          "Dha", "Dhin", "Dhin", "Dha",
-                          "Dha", "Tin", "Tin", "Ta",
-                          "Ta", "Dhin", "Dhin", "Dha"],
-        "common_in": ["Ghazal", "Classical", "Film songs"],
-        "tempo_range_bpm": [50, 200],
-    },
-    "rupak": {
-        "name": "Rupak Taal",
-        "beats": 7,
-        "divisions": [3, 2, 2],
-        "common_in": ["Light classical", "Thumri"],
-        "tempo_range_bpm": [40, 160],
-    },
-    "dadra": {
-        "name": "Dadra",
-        "beats": 6,
-        "divisions": [3, 3],
-        "common_in": ["Thumri", "Folk", "Film songs"],
-        "tempo_range_bpm": [60, 180],
-    },
-    "keherwa": {
-        "name": "Keherwa",
-        "beats": 8,
-        "divisions": [4, 4],
-        "common_in": ["Folk", "Qawwali", "Light classical"],
-        "tempo_range_bpm": [80, 220],
-    },
-    "jhaptaal": {
-        "name": "Jhaptaal",
-        "beats": 10,
-        "divisions": [2, 3, 2, 3],
-        "common_in": ["Classical vocal", "Ghazal"],
-        "tempo_range_bpm": [40, 160],
-    },
+# Taal definitions mapping from time signature
+TAAL_MAP = {
+    '4/4': 'Keherwa (8 beats) or Teentaal (16 beats)',
+    '6/8': 'Dadra (6 beats)',
+    '7/8': 'Rupak (7 beats)',
+    '10/8': 'Jhaptaal (10 beats)',
 }
 
-
-def detect_tempo_and_beats(audio_path, sr=44100):
-    """Detect tempo and beat positions."""
+def detect_taal(audio_path, sr=22050):
+    '''
+    Detects BPM and maps to the most likely Taal.
+    Eastern music does not always follow strict tempo — we use confidence scoring.
+    '''
     if not LIBROSA_AVAILABLE:
         raise ImportError("librosa required")
 
     y, sr = librosa.load(str(audio_path), sr=sr, mono=True)
-    tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
+    
+    # 1. Detect tempo (BPM)
+    tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr, units='frames')
+    bpm = float(tempo[0] if hasattr(tempo, '__len__') else tempo)
     beat_times = librosa.frames_to_time(beat_frames, sr=sr)
-
-    # Onset strength for rhythm analysis
+    
+    # 2. Analyze beat intervals for consistency
+    if len(beat_times) > 1:
+        intervals = np.diff(beat_times)
+        interval_std = float(np.std(intervals))
+        is_consistent = interval_std < 0.15  # Less than 150ms variance = consistent tempo
+    else:
+        is_consistent = False
+        interval_std = 999.0
+    
+    # 3. Detect time signature (look for 3-beat vs 4-beat groupings)
     onset_env = librosa.onset.onset_strength(y=y, sr=sr)
-
+    
+    # Pad to ensure enough length for correlation pattern
+    if len(onset_env) < 20:
+        pad = np.zeros(20 - len(onset_env))
+        onset_env = np.concatenate([onset_env, pad])
+        
+    # Check correlation with beat patterns
+    score_3 = float(np.correlate(onset_env, np.array([1,0,0,1,0,0,1,0,0]), mode='valid')[0])
+    score_4 = float(np.correlate(onset_env, np.array([1,0,0,0,1,0,0,0]), mode='valid')[0])
+    score_6 = float(np.correlate(onset_env, np.array([1,0,0,1,0,0]), mode='valid')[0])
+    score_7 = float(np.correlate(onset_env, np.array([1,0,0,1,0,1,0]), mode='valid')[0])
+    
+    # 4. Map to Taal
+    pattern_scores = {'4/4': score_4, '6/8': score_6, '7/8': score_7}
+    detected_sig = max(pattern_scores, key=pattern_scores.get)
+    
     return {
-        "tempo_bpm": round(float(tempo[0]) if hasattr(tempo, '__len__') else float(tempo), 1),
-        "num_beats": len(beat_times),
-        "beat_times": beat_times.tolist(),
-        "duration_seconds": round(len(y) / sr, 2),
+        'bpm': round(bpm, 1),
+        'time_signature': detected_sig,
+        'likely_taal': TAAL_MAP.get(detected_sig, 'Unknown'),
+        'tempo_consistent': bool(is_consistent),
+        'tempo_variance_ms': round(float(interval_std) * 1000, 1),
+        'warning': None if is_consistent else 'Tempo drifts — DTW sync required in Phase 2'
     }
-
-
-def classify_taal(tempo_bpm, num_beats, duration):
-    """Simple taal classification based on tempo and beat grouping."""
-    matches = []
-    for taal_id, taal in TAAL_DATABASE.items():
-        tempo_range = taal["tempo_range_bpm"]
-        if tempo_range[0] <= tempo_bpm <= tempo_range[1]:
-            # Check if beat count is divisible by taal beats
-            remainder = num_beats % taal["beats"]
-            fit_score = 1.0 - (remainder / taal["beats"])
-            matches.append({
-                "taal_id": taal_id,
-                "taal_name": taal["name"],
-                "beats": taal["beats"],
-                "fit_score": round(fit_score, 3),
-                "common_in": taal.get("common_in", []),
-            })
-
-    matches.sort(key=lambda x: x["fit_score"], reverse=True)
-    return matches[:3]
 
 
 def main():
@@ -115,21 +91,20 @@ def main():
     parser.add_argument("--save-json", default=None, help="Save results")
     args = parser.parse_args()
 
-    result = detect_tempo_and_beats(args.input)
-    taal_matches = classify_taal(result["tempo_bpm"], result["num_beats"], result["duration_seconds"])
+    result = detect_taal(args.input)
 
     print(f"\n🥁 Taal Analysis: {Path(args.input).name}")
-    print(f"   Tempo: {result['tempo_bpm']} BPM")
-    print(f"   Beats: {result['num_beats']}")
-
-    for i, match in enumerate(taal_matches):
-        print(f"\n   {i+1}. {match['taal_name']} ({match['beats']} beats)")
-        print(f"      Fit: {match['fit_score']:.3f}")
-        print(f"      Common in: {', '.join(match['common_in'])}")
+    print(f"   BPM: {result['bpm']} BPM")
+    print(f"   Time Signature: {result['time_signature']}")
+    print(f"   Likely Taal: {result['likely_taal']}")
+    print(f"   Tempo Consistent: {result['tempo_consistent']} (variance: {result['tempo_variance_ms']} ms)")
+    
+    if result.get("warning"):
+        print(f"   ⚠️  WARNING: {result['warning']}")
 
     if args.save_json:
         with open(args.save_json, "w") as f:
-            json.dump({"rhythm": result, "taal_matches": taal_matches}, f, indent=2)
+            json.dump(result, f, indent=2)
 
 
 if __name__ == "__main__":

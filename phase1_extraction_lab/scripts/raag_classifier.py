@@ -307,11 +307,36 @@ def main():
         print(f"      Time: {match['time']}")
 
     if args.save_json:
+        # Calculate relative confidence percentages for the top matches
+        total_sim = sum(abs(m["similarity"]) for m in matches)
+        if total_sim > 0:
+            for m in matches:
+                m["confidence"] = round((m["similarity"] / total_sim) * 100, 1)
+        else:
+            for m in matches:
+                m["confidence"] = 0.0
+
+        top_confidence = matches[0]["confidence"] if matches else 0.0
+
+        # Create output matching the blueprint's detect_raag format
+        tonic_names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
+        # Find closest standard pitch class index for the raw frequency
+        # Formula: pc = round(12 * log2(f / 261.63)) % 12
+        if tonic and tonic > 0:
+            tonic_pc = int(round(12 * np.log2(tonic / 261.63))) % 12
+            tonic_name = tonic_names[tonic_pc]
+        else:
+            tonic_name = "Unknown"
+
         result = {
             "file": str(input_path),
+            "detected_tonic": tonic_name,
             "tonic_hz": tonic,
-            "pcp": pcp.tolist(),
-            "matches": matches,
+            "top_raags": [(m["raag_name"], m["confidence"]) for m in matches],
+            "confidence": top_confidence,
+            "is_certain": top_confidence > 60.0,
+            "chroma_vector": pcp.tolist(),
+            "matches_detailed": matches,
         }
         with open(args.save_json, "w") as f:
             json.dump(result, f, indent=2)
