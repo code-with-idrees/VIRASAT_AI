@@ -44,14 +44,14 @@ DEFAULT_THRESHOLDS_PATH = CONFIG_DIR / "quality_thresholds.json"
 
 # Fallback frequency ranges if config not found
 FALLBACK_INSTRUMENTS = {
-    "sitar": {"low_hz": 200, "high_hz": 700, "threshold_db": -15},
-    "tabla": {"low_hz": 60, "high_hz": 300, "threshold_db": -12},
-    "harmonium": {"low_hz": 200, "high_hz": 800, "threshold_db": -15},
-    "tanpura": {"low_hz": 60, "high_hz": 250, "threshold_db": -10},
-    "dhol": {"low_hz": 50, "high_hz": 150, "threshold_db": -10},
-    "sarangi": {"low_hz": 250, "high_hz": 1200, "threshold_db": -15},
-    "electric_guitar": {"low_hz": 80, "high_hz": 1200, "threshold_db": -15},
-    "synthesizer": {"low_hz": 200, "high_hz": 4000, "threshold_db": -12},
+    "sitar": {"low_hz": 200, "high_hz": 700, "threshold_db": -5},
+    "tabla": {"low_hz": 60, "high_hz": 300, "threshold_db": -5},
+    "harmonium": {"low_hz": 200, "high_hz": 800, "threshold_db": -5},
+    "tanpura": {"low_hz": 60, "high_hz": 250, "threshold_db": -5},
+    "dhol": {"low_hz": 50, "high_hz": 150, "threshold_db": -5},
+    "sarangi": {"low_hz": 250, "high_hz": 1200, "threshold_db": -5},
+    "electric_guitar": {"low_hz": 80, "high_hz": 1200, "threshold_db": -5},
+    "synthesizer": {"low_hz": 200, "high_hz": 4000, "threshold_db": -5},
 }
 
 # Vocal reference band (speech intelligibility)
