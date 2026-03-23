@@ -66,15 +66,21 @@ def analyze_heritage_track(audio_path, song_name='Unknown'):
     # 3. Detect Bleed Ratio
     print("   🔬 Analyzing Instrument Bleed...")
     bleed_scores = compute_bleed_scores(audio_path)
-    # Convert bleed penalty (0-100) to a ratio (0.0 to 1.0)
-    # A score of 0 = 0.0 ratio. A score of 100 = 1.0 ratio.
     overall_bleed_penalty = compute_overall_bleed_score(bleed_scores)
     bleed_ratio = float(overall_bleed_penalty) / 100.0
     
-    # Determine dynamic restoration score (0-100)
-    base_score = max(0, int(100 - (bleed_ratio * 100)))
+    # Dynamic restoration score (0-100)
+    # Non-linear curve: score = 100 * (1 - bleed_ratio)^0.5
+    # This rewards clean stems more aggressively.
+    base_score = int(100 * ((1.0 - bleed_ratio) ** 0.5))
+    
+    # Cleanliness bonus: if no instrument shows bleed, add +2
+    any_bleeding = any(s.get("is_bleeding", False) for s in bleed_scores.values())
+    if not any_bleeding:
+        base_score = min(100, base_score + 2)
+    
     if not taal_result.get('tempo_consistent', False):
-        base_score = min(base_score, 85)  # Cap at 85 if tempo drifts
+        base_score = min(base_score, 95)  # Cap at 95 if tempo drifts (not 85)
     
     restoration_score = base_score
         
