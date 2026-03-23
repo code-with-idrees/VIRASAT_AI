@@ -72,9 +72,9 @@ def download_audio(url, output_dir=None, filename=None, artist=None):
     else:
         output_template = str(output_dir / "%(title)s.%(ext)s")
 
-    # yt-dlp command (using python -m yt_dlp for better compatibility)
+    # yt-dlp command (using the direct executable for better PATH compatibility on Kaggle/Colab)
     cmd = [
-        sys.executable, "-m", "yt_dlp",
+        "yt-dlp",
         "--extract-audio",
         "--audio-format", AUDIO_FORMAT,
         "--audio-quality", "0",  # Best quality
