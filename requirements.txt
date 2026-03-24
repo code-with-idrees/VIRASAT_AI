@@ -39,3 +39,14 @@ pytest-cov>=4.1.0            # Coverage reporting
 # --- Utilities ---
 pyyaml>=6.0                  # Config file parsing
 rich>=13.0.0                 # Pretty terminal output
+
+# ============================================
+# VIRASAT AI — Phase 2 Dependencies
+# ============================================
+
+# --- MIDI Processing ---
+pretty_midi>=0.2.10          # MIDI read/write/manipulation
+basic-pitch>=0.2.6           # Spotify audio-to-MIDI (requires TensorFlow)
+
+# --- MIDI Rendering ---
+midi2audio>=0.1.1            # FluidSynth Python wrapper

@@ -59,3 +59,11 @@ phase1_extraction_lab/data/reports/*.html
 # === Environment variables ===
 .env
 .env.local
+
+# === Phase 2: MIDI & Generated Output ===
+*.mid
+*.midi
+outputs/
+generated_tracks/
+datasets/
+models/

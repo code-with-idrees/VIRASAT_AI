@@ -126,7 +126,7 @@ python3 phase1_extraction_lab/scripts/stem_separator.py \
 | Phase | Days | Name | Status |
 |-------|------|------|--------|
 | 1 | 1-5 | **Extraction Lab** — Stem separation & quality | ✅ Complete |
-| 2 | 6-12 | **Eastern Soul Engine** — Raag-Lock & synthesis | 🔄 In Progress |
+| 2 | 6-12 | **Eastern Soul Engine** — Raag-Lock & synthesis | ✅ Complete |
 | 3 | 13-18 | **Video Pipeline** — AI video generation | ⏳ Planned |
 | 4 | 19-25 | **Dashboard** — Streamlit UI & heritage slider | ⏳ Planned |
 | 5 | 26-30 | **Launch** — Pitch deck & Coke Studio outreach | ⏳ Planned |
