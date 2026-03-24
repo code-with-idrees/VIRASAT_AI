@@ -1,0 +1,101 @@
+[
+  {
+    "raag": "Bhairavi",
+    "taal": "Keherwa",
+    "bpm": 60,
+    "style": "coke_studio",
+    "prompt": "Instrumental backing track, 60 BPM, 8-beat cycle.\nMood: melancholic, devotional, longing, farewell.\nInstruments: sarangi, bansuri, tabla, harmonium.\nStyle: Coke Studio Pakistan production, modern studio live session, warm mixing, contemporary South Asian pop, radio-ready production.\nKeywords: sad indian classical, melancholic sitar melody, morning raga, devotional tabla rhythm, sarangi violin, minor scale indian.\nNO VOCALS. NO WESTERN DRUMS. Tabla only for percussion.\nMelodic feel similar to Phrygian mode, Spanish Flamenco minor but with Indian ornaments and gamakas.\nHigh quality studio recording, 2026 production standard.\nDuration: 120 seconds. Starts soft, builds to climax at 60 seconds.",
+    "notes": [0, 1, 3, 5, 7, 8, 10],
+    "prompt_notes": "Bhairavi responds well to 'sad', 'morning', 'devotional' keywords. Avoid 'party' or 'upbeat'."
+  },
+  {
+    "raag": "Bhairavi",
+    "taal": "Dadra",
+    "bpm": 55,
+    "style": "lo_fi",
+    "prompt": "Instrumental backing track, 55 BPM, 6-beat cycle.\nMood: melancholic, devotional, longing, farewell.\nInstruments: sarangi, bansuri, tabla, harmonium.\nStyle: lo-fi chill beats, vinyl crackle, bedroom production, nostalgic warm sound, tape saturation, mellow vibes.\nKeywords: sad indian classical, melancholic sitar melody, morning raga, devotional tabla rhythm, sarangi violin, minor scale indian.\nNO VOCALS. NO WESTERN DRUMS. Tabla only for percussion.\nMelodic feel similar to Phrygian mode, Spanish Flamenco minor but with Indian ornaments.\nDuration: 120 seconds.",
+    "notes": [0, 1, 3, 5, 7, 8, 10],
+    "prompt_notes": "Lo-fi + Bhairavi works surprisingly well. The vinyl crackle adds nostalgia."
+  },
+  {
+    "raag": "Bhairavi",
+    "taal": "Keherwa",
+    "bpm": 65,
+    "style": "cinematic",
+    "prompt": "Instrumental backing track, 65 BPM, 8-beat cycle.\nMood: melancholic, devotional, longing, farewell.\nInstruments: sarangi, bansuri, tabla, harmonium.\nStyle: Hans Zimmer cinematic epic, orchestral South Asian, emotional film score, building tension, sweeping strings.\nKeywords: sad indian classical, melancholic sitar melody, morning raga, devotional tabla rhythm.\nNO VOCALS. NO WESTERN DRUMS. Tabla only for percussion.\nDuration: 120 seconds. Starts soft, builds to climax at 60 seconds.",
+    "notes": [0, 1, 3, 5, 7, 8, 10],
+    "prompt_notes": "Cinematic style adds orchestral depth. Good for video backgrounds."
+  },
+  {
+    "raag": "Yaman",
+    "taal": "Teentaal",
+    "bpm": 80,
+    "style": "coke_studio",
+    "prompt": "Instrumental backing track, 80 BPM, 16-beat cycle.\nMood: romantic, peaceful, evening beauty, hope.\nInstruments: sitar, sarod, tabla, tanpura.\nStyle: Coke Studio Pakistan production, modern studio live session, warm mixing, contemporary South Asian pop.\nKeywords: romantic indian evening, sitar melody lydian, hopeful raga, indian classical evening, peaceful tabla groove.\nNO VOCALS. NO WESTERN DRUMS. Tabla only for percussion.\nMelodic feel similar to Lydian mode, major scale with #4 but with Indian ornaments.\nHigh quality studio recording. Duration: 120 seconds.",
+    "notes": [0, 2, 4, 6, 7, 9, 11],
+    "prompt_notes": "Yaman + Lydian keyword works well. 'Evening' and 'romantic' are key triggers."
+  },
+  {
+    "raag": "Yaman",
+    "taal": "Teentaal",
+    "bpm": 85,
+    "style": "sufi_rock",
+    "prompt": "Instrumental backing track, 85 BPM, 16-beat cycle.\nMood: romantic, peaceful, evening beauty, hope.\nInstruments: sitar, sarod, tabla, tanpura, electric guitar.\nStyle: Junoon-style sufi rock, electric guitar meets tabla, psychedelic Eastern fusion, arena rock energy.\nKeywords: romantic indian evening, sitar melody lydian, hopeful raga, peaceful tabla groove.\nNO VOCALS. Tabla + rock drums. Duration: 120 seconds.",
+    "notes": [0, 2, 4, 6, 7, 9, 11],
+    "prompt_notes": "Sufi rock with Yaman creates a Junoon-like feel. Allow rock drums here."
+  },
+  {
+    "raag": "Darbari",
+    "taal": "Ektaal",
+    "bpm": 45,
+    "style": "coke_studio",
+    "prompt": "Instrumental backing track, 45 BPM, 12-beat cycle.\nMood: serious, dignified, royal, deep, late night.\nInstruments: been, sarod, tabla, tanpura.\nStyle: Coke Studio Pakistan production, modern studio live session, warm mixing.\nKeywords: dark royal indian classical, deep night raga, slow dramatic tabla, dignified sarod, cinematic indian epic, dorian flat 6 ethnic.\nNO VOCALS. NO WESTERN DRUMS. Duration: 120 seconds. Very slow, meditative opening.",
+    "notes": [0, 2, 3, 5, 7, 8, 10],
+    "prompt_notes": "Darbari needs very slow tempo. 'Royal', 'dignified', 'deep night' are essential."
+  },
+  {
+    "raag": "Darbari",
+    "taal": "Ektaal",
+    "bpm": 50,
+    "style": "cinematic",
+    "prompt": "Instrumental backing track, 50 BPM, 12-beat cycle.\nMood: serious, dignified, royal, deep, late night.\nInstruments: been, sarod, tabla, tanpura, orchestral strings.\nStyle: Hans Zimmer cinematic epic, orchestral South Asian, emotional film score, building tension.\nKeywords: dark royal indian classical, cinematic indian epic, slow dramatic tabla.\nNO VOCALS. Duration: 120 seconds. Builds from silence to full orchestra.",
+    "notes": [0, 2, 3, 5, 7, 8, 10],
+    "prompt_notes": "Cinematic Darbari is perfect for documentary/film use. Very powerful."
+  },
+  {
+    "raag": "Kafi",
+    "taal": "Keherwa",
+    "bpm": 105,
+    "style": "coke_studio",
+    "prompt": "Instrumental backing track, 105 BPM, 8-beat cycle.\nMood: folk, romantic, Sufi, devotional, earthy.\nInstruments: harmonium, dholak, sarangi, tabla.\nStyle: Coke Studio Pakistan production, modern studio live session, warm mixing.\nKeywords: sufi folk punjabi, romantic dholak rhythm, earthy harmonium, pakistani folk, qawwali beat, dorian mode ethnic.\nNO VOCALS. NO WESTERN DRUMS. Dholak + Tabla for percussion. Duration: 120 seconds.",
+    "notes": [0, 2, 3, 5, 7, 9, 10],
+    "prompt_notes": "Kafi at higher tempo feels very folk/Sufi. 'Qawwali beat' triggers good patterns."
+  },
+  {
+    "raag": "Kafi",
+    "taal": "Keherwa",
+    "bpm": 110,
+    "style": "trap",
+    "prompt": "Instrumental backing track, 110 BPM, 8-beat cycle.\nMood: folk, romantic, Sufi, devotional, earthy.\nInstruments: harmonium, dholak, 808 bass, hi-hats.\nStyle: trap hi-hats 808 bass, Eastern samples chopped, dark modern trap, South Asian drill music.\nKeywords: sufi folk punjabi, earthy harmonium, pakistani folk, dorian mode ethnic.\nNO VOCALS. Duration: 120 seconds. Heavy bass drops.",
+    "notes": [0, 2, 3, 5, 7, 9, 10],
+    "prompt_notes": "Kafi + trap is the most experimental combo. 808 bass + dholak is surprisingly good."
+  },
+  {
+    "raag": "Bhairav",
+    "taal": "Teentaal",
+    "bpm": 55,
+    "style": "coke_studio",
+    "prompt": "Instrumental backing track, 55 BPM, 16-beat cycle.\nMood: spiritual, majestic, divine, awakening.\nInstruments: shehnai, bansuri, tabla, veena.\nStyle: Coke Studio Pakistan production, modern studio live session, warm mixing.\nKeywords: divine morning indian, majestic shehnai, spiritual dawn raga, flute meditative, slow awakening drums.\nNO VOCALS. NO WESTERN DRUMS. Duration: 120 seconds. Dawn atmosphere.",
+    "notes": [0, 1, 4, 5, 7, 8, 11],
+    "prompt_notes": "Bhairav needs 'dawn', 'divine', 'awakening' keywords. The Byzantine scale reference helps."
+  },
+  {
+    "raag": "Bhairav",
+    "taal": "Jhaptaal",
+    "bpm": 50,
+    "style": "cinematic",
+    "prompt": "Instrumental backing track, 50 BPM, 10-beat cycle.\nMood: spiritual, majestic, divine, awakening.\nInstruments: shehnai, bansuri, tabla, veena, orchestral ensemble.\nStyle: Hans Zimmer cinematic epic, orchestral South Asian, emotional film score.\nKeywords: divine morning indian, majestic shehnai, spiritual dawn raga.\nNO VOCALS. Duration: 120 seconds. Asymmetric rhythm adds tension.",
+    "notes": [0, 1, 4, 5, 7, 8, 11],
+    "prompt_notes": "Jhaptaal (10-beat) with Bhairav creates an unusual, compelling asymmetry."
+  }
+]
