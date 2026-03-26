@@ -140,4 +140,4 @@ For Demonstration Purposes Only. Heritage audio content used under fair use for 
 
 ---
 
-*Built with ❤️ for Pakistani music heritage*
+*Built with ❤️ for Pakistani music heritage.*
